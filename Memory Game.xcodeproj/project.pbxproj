@@ -15,6 +15,7 @@
 		365839A02061423E00B417E1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3658399E2061423E00B417E1 /* LaunchScreen.storyboard */; };
 		365839AB2061423E00B417E1 /* Memory_GameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 365839AA2061423E00B417E1 /* Memory_GameTests.swift */; };
 		365839B62061423F00B417E1 /* Memory_GameUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 365839B52061423F00B417E1 /* Memory_GameUITests.swift */; };
+		365839C520618F1300B417E1 /* GameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 365839C420618F1300B417E1 /* GameManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,7 @@
 		365839B12061423F00B417E1 /* Memory GameUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Memory GameUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		365839B52061423F00B417E1 /* Memory_GameUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memory_GameUITests.swift; sourceTree = "<group>"; };
 		365839B72061423F00B417E1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		365839C420618F1300B417E1 /* GameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +101,7 @@
 		365839912061422E00B417E1 /* Memory Game */ = {
 			isa = PBXGroup;
 			children = (
+				365839C320618EE900B417E1 /* Logic */,
 				365839922061422E00B417E1 /* AppDelegate.swift */,
 				365839942061423300B417E1 /* ViewController.swift */,
 				365839962061423A00B417E1 /* Main.storyboard */,
@@ -126,6 +129,14 @@
 				365839B72061423F00B417E1 /* Info.plist */,
 			);
 			path = "Memory GameUITests";
+			sourceTree = "<group>";
+		};
+		365839C320618EE900B417E1 /* Logic */ = {
+			isa = PBXGroup;
+			children = (
+				365839C420618F1300B417E1 /* GameManager.swift */,
+			);
+			path = Logic;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -263,6 +274,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3658399B2061423D00B417E1 /* Memory_Game.xcdatamodeld in Sources */,
+				365839C520618F1300B417E1 /* GameManager.swift in Sources */,
 				365839952061423300B417E1 /* ViewController.swift in Sources */,
 				365839932061422F00B417E1 /* AppDelegate.swift in Sources */,
 			);
