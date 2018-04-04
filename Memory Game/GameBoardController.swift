@@ -1,0 +1,140 @@
+//
+//  GameBoardController.swift
+//  Memory Game
+//
+//  Created by tamir on 3/30/18.
+//  Copyright © 2018 tamir. All rights reserved.
+//
+
+import UIKit
+
+
+class GameBoardController: UIViewController , UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, GameManagerDelegate{
+    
+    // MARK: Properties
+    @IBOutlet weak var timeLabel: UILabel!
+    @IBOutlet weak var nameLabel: UILabel!
+    @IBOutlet weak var boardCollectionView: UICollectionView!
+    
+    // MARK: Methods
+    
+    // MARK: UICollectionViewDelegateFlowLayout
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        // Getting the number of rows and columns
+        let columnsCount = GameManager.getInstance().getBoardDimention().cols
+        let rowsCount = GameManager.getInstance().getBoardDimention().rows
+        
+        // Calculating the size avialable for the cells (substructing the space)
+        let collectionViewCellsBoundWidth = (collectionView.bounds.size.width - CGFloat(columnsCount) * 5)
+        let collectionViewCellsBoundHeight = (collectionView.bounds.size.height - CGFloat(rowsCount) * 5)
+        
+        let cellWidth = collectionViewCellsBoundWidth / CGFloat(columnsCount)
+        let cellHeight = collectionViewCellsBoundHeight / CGFloat(rowsCount)
+        return CGSize(width: Int(cellWidth), height: Int(cellHeight))
+    }
+    
+    // MARK: UICollectionViewDataSource
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        print(indexPath)
+        // get a reference to storyboard cell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CardViewCell", for: indexPath as IndexPath) as! CardViewCell
+        
+        // Setting the index of the cell and updating it's image
+        cell.setIndexPath(indexPath: indexPath)
+        cell.updateImage()
+        
+        return cell
+    }
+    
+    // MARK: UICollectionViewDelegate
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        // Trying to reveal the chosen card
+        let result = GameManager.getInstance().revealCell(cellRow: indexPath.section, cellColumn: indexPath.row)
+        
+        // Checking if reveal was made:
+        switch result {
+        case GameManager.TurnResult.InvalidCell:
+            AlertDisplayer.showAlert(title: "Error", msg: "Internal error, please choose again.", controller: self)
+        case GameManager.TurnResult.MaxCardsRevealed:
+            break
+        case GameManager.TurnResult.AlreadyRevealedCell:
+            break
+        case GameManager.TurnResult.Revealed:
+            // Refreshing the clicked view
+            (collectionView.cellForItem(at: indexPath) as? CardViewCell)!.updateImage()
+        }
+    }
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return GameManager.getInstance().getBoardDimention().rows
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return GameManager.getInstance().getBoardDimention().cols
+    }
+    
+    // MARK: GameManagerDelegate
+    
+    func cardChanged(row: Int, col: Int) {
+        DispatchQueue.main.async {
+            // Refreshing the changed card
+            (self.boardCollectionView.cellForItem(at: IndexPath(indexes: [row, col])) as? CardViewCell)?.updateImage()
+        }
+    }
+    
+    func gameWon() {
+        DispatchQueue.main.async {
+            // Moving to the game board:
+            let winController = self.storyboard?.instantiateViewController(withIdentifier: "WinController") as! WinController
+            
+            // Presenting and not pushing cause we do not want to go back here
+            //self.present(winController, animated: true, completion: nil)
+            self.navigationController!.pushViewController(winController, animated: true)
+        }
+    }
+    
+    func timeUpdated(time: (hour: Int, minute: Int, second: Int)) {
+        DispatchQueue.main.async {
+            self.timeLabel.text = String(format: "%02d:%02d:%02d", time.hour, time.minute, time.second)
+        }
+    }
+    
+    
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if GameManager.getInstance().isWon() {
+            // If the game has won, no need for this screen anymore,
+            // moving to the previous screenb
+            self.navigationController!.popViewController(animated: false)
+        }
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // Settign background:
+        self.view.backgroundColor = UIColor(patternImage: #imageLiteral(resourceName: "background"))
+        
+        // Registering to the manager's delegate
+        GameManager.getInstance().delegate = self
+        
+        // Setting the navigation controller transparent
+        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        self.navigationController?.navigationBar.shadowImage = UIImage()
+        self.navigationController?.navigationBar.isTranslucent = true
+        self.navigationController?.view.backgroundColor = .clear
+        
+        // Setting the current time and player name
+        let time = GameManager.getInstance().getTime()
+        timeLabel.text = String(format: "%02d:%02d:%02d", time.hour, time.minute, time.second)
+        nameLabel.text = GameManager.getInstance().getName()
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        GameManager.getInstance().stopTimeTimer()
+    }
+}
