@@ -15,6 +15,7 @@ class GameBoardController: UIViewController , UICollectionViewDataSource, UIColl
     @IBOutlet weak var timeLabel: UILabel!
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var boardCollectionView: UICollectionView!
+    private static var CELLS_MARGIN:CGFloat = 5
     
     // MARK: Methods
     
@@ -26,8 +27,8 @@ class GameBoardController: UIViewController , UICollectionViewDataSource, UIColl
         let rowsCount = GameManager.getInstance().getBoardDimention().rows
         
         // Calculating the size avialable for the cells (substructing the space)
-        let collectionViewCellsBoundWidth = (collectionView.bounds.size.width - CGFloat(columnsCount) * 5)
-        let collectionViewCellsBoundHeight = (collectionView.bounds.size.height - CGFloat(rowsCount) * 5)
+        let collectionViewCellsBoundWidth = (collectionView.bounds.size.width - CGFloat(columnsCount) * GameBoardController.CELLS_MARGIN)
+        let collectionViewCellsBoundHeight = (collectionView.bounds.size.height - CGFloat(rowsCount) * GameBoardController.CELLS_MARGIN)
         
         let cellWidth = collectionViewCellsBoundWidth / CGFloat(columnsCount)
         let cellHeight = collectionViewCellsBoundHeight / CGFloat(rowsCount)
@@ -79,37 +80,26 @@ class GameBoardController: UIViewController , UICollectionViewDataSource, UIColl
     // MARK: GameManagerDelegate
     
     func cardChanged(row: Int, col: Int) {
-        DispatchQueue.main.async {
+        DispatchQueue.main.async {[weak self] in
             // Refreshing the changed card
-            (self.boardCollectionView.cellForItem(at: IndexPath(indexes: [row, col])) as? CardViewCell)?.updateImage()
+            (self?.boardCollectionView.cellForItem(at: IndexPath(indexes: [row, col])) as? CardViewCell)?.updateImage()
         }
     }
     
     func gameWon() {
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
             // Moving to the game board:
-            let winController = self.storyboard?.instantiateViewController(withIdentifier: "WinController") as! WinController
+            let winController = self?.storyboard?.instantiateViewController(withIdentifier: "WinController") as! WinController
             
             // Presenting and not pushing cause we do not want to go back here
             //self.present(winController, animated: true, completion: nil)
-            self.navigationController!.pushViewController(winController, animated: true)
+            self?.navigationController!.pushViewController(winController, animated: true)
         }
     }
     
     func timeUpdated(time: (hour: Int, minute: Int, second: Int)) {
-        DispatchQueue.main.async {
-            self.timeLabel.text = String(format: "%02d:%02d:%02d", time.hour, time.minute, time.second)
-        }
-    }
-    
-    
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        if GameManager.getInstance().isWon() {
-            // If the game has won, no need for this screen anymore,
-            // moving to the previous screenb
-            self.navigationController!.popViewController(animated: false)
+        DispatchQueue.main.async { [weak self] in
+            self?.timeLabel.text = String(format: "%02d:%02d:%02d", time.hour, time.minute, time.second)
         }
     }
     
@@ -128,8 +118,7 @@ class GameBoardController: UIViewController , UICollectionViewDataSource, UIColl
         self.navigationController?.view.backgroundColor = .clear
         
         // Setting the current time and player name
-        let time = GameManager.getInstance().getTime()
-        timeLabel.text = String(format: "%02d:%02d:%02d", time.hour, time.minute, time.second)
+        timeUpdated(time: GameManager.getInstance().getTime())
         nameLabel.text = GameManager.getInstance().getName()
     }
     

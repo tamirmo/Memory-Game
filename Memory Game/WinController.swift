@@ -22,5 +22,9 @@ class WinController: UIViewController{
         self.navigationController?.view.backgroundColor = .clear
     }
     
-    
+    override func viewWillDisappear(_ animated: Bool) {
+        // Going back to the home screen (popping two controllers)
+        let viewControllers: [UIViewController] = self.navigationController!.viewControllers as [UIViewController]
+        self.navigationController!.popToViewController(viewControllers[viewControllers.count - 2], animated: true)
+    }
 }

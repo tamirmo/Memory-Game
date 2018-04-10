@@ -33,7 +33,6 @@ class CardViewCell: UICollectionViewCell{
             isHidden = false
             // Checking if we need to display the revealed image or the actual card
             if cell!.getRevealed() {
-                print(CardViewCell.CARD_IMAGES_PREFIX + String(describing: cell!.getType()))
                 // (The images names are 1 based)
                 cardImage.image = UIImage(named:CardViewCell.CARD_IMAGES_PREFIX + String(describing: cell!.getType()))
                 // Animating the card's change

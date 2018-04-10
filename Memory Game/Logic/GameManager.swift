@@ -31,8 +31,6 @@ class GameManager{
                 return nil
             }
         }
-        
-        
     }
     
     /**
@@ -66,7 +64,7 @@ class GameManager{
     private var time: (hour: Int, minute: Int, second: Int) = (0, 0, 0)
     private var name: String = ""
     private var timeTimer: Timer? = nil
-    public var delegate: GameManagerDelegate?
+    public weak var delegate: GameManagerDelegate?
     
     // MARK: - Accessors
     
@@ -269,6 +267,7 @@ class GameManager{
     
     func stopTimeTimer() -> Void {
         timeTimer?.invalidate()
+        timeTimer = nil
     }
     
     func getCell(cellRow: Int, cellColumn: Int) -> BoardCell? {

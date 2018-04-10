@@ -9,10 +9,10 @@
 import UIKit
 
 
-class HomeScreenController: UIViewController,UIPickerViewDataSource,UIPickerViewDelegate  {
+class HomeScreenController: UIViewController,UIPickerViewDataSource,UIPickerViewDelegate {
     // MARK: Properties
     @IBOutlet weak var difficultyPicker: UIPickerView!
-    @IBOutlet var goImageView: UIImageView!
+    @IBOutlet weak var goImageView: UIImageView!
     @IBOutlet weak var playerNameText: UITextField!
     
     // MARK: UIPickerViewDataSource
@@ -36,7 +36,7 @@ class HomeScreenController: UIViewController,UIPickerViewDataSource,UIPickerView
             // Getting the chosen difficulty and initializing the board
             let selectedDifficultyIndex = difficultyPicker.selectedRow(inComponent: 0)
             let difficultyChosen = GameManager.Difficulty.allValues[selectedDifficultyIndex]
-            // TODO:
+            
             GameManager.getInstance().initializeGame(difficulty: difficultyChosen, playerName: playerNameText.text!)
             
             // Moving to the game board:
@@ -64,7 +64,5 @@ class HomeScreenController: UIViewController,UIPickerViewDataSource,UIPickerView
         self.navigationController?.navigationBar.isTranslucent = true
         self.navigationController?.view.backgroundColor = .clear
     }
-
-
 }
 
