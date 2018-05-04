@@ -11,7 +11,7 @@ import UIKit
 
 class GameBoardController: UIViewController , UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, GameManagerDelegate{
     
-    // MARK: Properties
+    // MARK: Members
     @IBOutlet weak var timeLabel: UILabel!
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var boardCollectionView: UICollectionView!
@@ -38,7 +38,6 @@ class GameBoardController: UIViewController , UICollectionViewDataSource, UIColl
     // MARK: UICollectionViewDataSource
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        print(indexPath)
         // get a reference to storyboard cell
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CardViewCell", for: indexPath as IndexPath) as! CardViewCell
         
@@ -88,18 +87,20 @@ class GameBoardController: UIViewController , UICollectionViewDataSource, UIColl
     
     func gameWon() {
         DispatchQueue.main.async { [weak self] in
-            // Moving to the game board:
-            let winController = self?.storyboard?.instantiateViewController(withIdentifier: "WinController") as! WinController
+            // Moving to the scores controller:
+            let scoresController = self?.storyboard?.instantiateViewController(withIdentifier: "ScoresController") as! ScoresController
+            
+            scoresController.setScoresParams(difficulty: GameManager.getInstance().gameDifficulty, userScore: GameManager.getInstance().gameDuration)
             
             // Presenting and not pushing cause we do not want to go back here
             //self.present(winController, animated: true, completion: nil)
-            self?.navigationController!.pushViewController(winController, animated: true)
+            self?.navigationController!.pushViewController(scoresController, animated: true)
         }
     }
     
-    func timeUpdated(time: (hour: Int, minute: Int, second: Int)) {
+    func durationUpdated(time: GameDuration) {
         DispatchQueue.main.async { [weak self] in
-            self?.timeLabel.text = String(format: "%02d:%02d:%02d", time.hour, time.minute, time.second)
+            self?.timeLabel.text = time.description
         }
     }
     
@@ -118,8 +119,8 @@ class GameBoardController: UIViewController , UICollectionViewDataSource, UIColl
         self.navigationController?.view.backgroundColor = .clear
         
         // Setting the current time and player name
-        timeUpdated(time: GameManager.getInstance().getTime())
-        nameLabel.text = GameManager.getInstance().getName()
+        durationUpdated(time: GameManager.getInstance().gameDuration)
+        nameLabel.text = GameManager.getInstance().playerName
     }
     
     override func viewDidDisappear(_ animated: Bool) {

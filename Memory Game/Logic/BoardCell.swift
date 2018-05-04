@@ -18,6 +18,8 @@ class BoardCell{
     private let row: Int
     private let col: Int
     
+    // MARK: - Ctor
+    
     init(type: Int, row: Int, col: Int) {
         isRevealed = false
         self.type = type
@@ -25,6 +27,8 @@ class BoardCell{
         self.row = row
         self.col = col
     }
+    
+    // MARK: - Getters & Setters
     
     func setRevealed(isRevealed: Bool) -> Void {
         self.isRevealed = isRevealed

@@ -9,7 +9,7 @@
 import UIKit
 
 class CardViewCell: UICollectionViewCell{
-    // MARK: Properties
+    // MARK: Members
     
     // The prefix of all cards images (adding a number will lead to an existing image
     private static let CARD_IMAGES_PREFIX: String = "card_"

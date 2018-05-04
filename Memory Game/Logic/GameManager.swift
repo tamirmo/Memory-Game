@@ -12,7 +12,7 @@ class GameManager{
     
     // MARK: - Enums
     
-    public enum Difficulty : String {
+    enum Difficulty: Int {
         case Beginners
         case Intermediate
         case Expert
@@ -30,6 +30,10 @@ class GameManager{
             default:
                 return nil
             }
+        }
+        
+        var string: String {
+            return String(describing: self)
         }
     }
     
@@ -61,12 +65,13 @@ class GameManager{
     private var matchedCards: Int = 0
     private var isGameWon: Bool = false
     // The time played
-    private var time: (hour: Int, minute: Int, second: Int) = (0, 0, 0)
+    private var time: GameDuration = GameDuration(hours: 0, minutes: 0, seconds: 0)
     private var name: String = ""
     private var timeTimer: Timer? = nil
+    private var scoresManager: ScoresManager? = nil
     public weak var delegate: GameManagerDelegate?
     
-    // MARK: - Accessors
+    // MARK: - Properties
     
     class func getInstance() -> GameManager {
         if shared == nil {
@@ -75,16 +80,20 @@ class GameManager{
         return shared!
     }
     
-    func isWon() -> Bool {
+    var isWon: Bool {
         return self.isGameWon
     }
     
-    func getTime() -> (hour: Int, minute: Int, second: Int) {
-        return time
+    var gameDuration: GameDuration {
+        return self.time
     }
     
-    func getName() -> String {
-        return name
+    var playerName: String {
+        return self.name
+    }
+    
+    var gameDifficulty: GameManager.Difficulty {
+        return self.difficulty!
     }
     
     // MARK: - Methods
@@ -136,7 +145,7 @@ class GameManager{
         self.matchedCards = 0
         self.isGameWon = false
         revealedCells = [BoardCell]()
-        time = (0,0,0)
+        time = GameDuration(hours: 0,minutes: 0,seconds: 0)
         name = playerName
         
         let difficultyDimention = getDimention(difficulty: difficulty)
@@ -173,17 +182,17 @@ class GameManager{
      Any ways, updating the delegate there is a card changed
      */
     @objc func timeTimerElapsed() ->Void {
-        time.second += 1
-        if time.second == 60{
-            time.second = 0
-            time.minute += 1
-            if time.minute == 60{
-                time.minute = 0
-                time.hour += 1
+        time.Seconds += 1
+        if time.Seconds == 60{
+            time.Seconds = 0
+            time.Minutes += 1
+            if time.Minutes == 60{
+                time.Minutes = 0
+                time.Hours += 1
             }
         }
         
-        self.delegate?.timeUpdated(time: self.time)
+        self.delegate?.durationUpdated(time: self.time)
     }
     
     /**
@@ -193,8 +202,9 @@ class GameManager{
      - returns: An enum TurnResult indicating if the cell was revealed anf if not, why.
      */
     func revealCell(cellRow: Int, cellColumn: Int) -> TurnResult {
+        // TODO: Back from comment
         // Assuming all ok
-        var result: TurnResult = .Revealed
+        /*var result: TurnResult = .Revealed
         
         let cell = getCell(cellRow: cellRow, cellColumn: cellColumn)
         if cell != nil{
@@ -227,7 +237,11 @@ class GameManager{
             result = .InvalidCell
         }
         
-        return result
+        return result*/
+        
+        delegate?.gameWon()
+        
+        return .Revealed
     }
     
     /**
@@ -263,6 +277,32 @@ class GameManager{
         
         // Clearing the revealed cells for next time
         revealedCells.removeAll()
+    }
+    
+    /**
+     This method adds the current ended game's result to the high scores DB if there is space or it is a new high.
+     - returns: nil if the score was not added (not a new high score), The score if added
+     */
+    func addLastScoreToHighScores() -> HighScore? {
+        var highScore: HighScore? = nil
+        
+        // Initializing the handler if not initiated
+        if scoresManager == nil {
+            scoresManager = ScoresManager()
+        }
+        
+        highScore = (scoresManager?.addScore(difficulty: difficulty!, name: name, time:time))
+        
+        return highScore
+    }
+    
+    func getHighScores(difficulty: Difficulty) -> [HighScore]? {
+        // Initializing the handler if not initiated
+        if scoresManager == nil {
+            scoresManager = ScoresManager()
+        }
+        
+        return scoresManager?.pullAllScores(difficulty: difficulty.rawValue)
     }
     
     func stopTimeTimer() -> Void {

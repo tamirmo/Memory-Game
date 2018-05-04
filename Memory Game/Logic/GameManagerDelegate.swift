@@ -11,5 +11,5 @@ import Foundation
 protocol GameManagerDelegate: class{
     func cardChanged(row: Int, col: Int) -> Void
     func gameWon() -> Void
-    func timeUpdated(time: (hour: Int, minute: Int, second: Int)) -> Void
+    func durationUpdated(time: GameDuration) -> Void
 }

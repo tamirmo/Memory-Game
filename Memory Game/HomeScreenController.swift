@@ -10,10 +10,12 @@ import UIKit
 
 
 class HomeScreenController: UIViewController,UIPickerViewDataSource,UIPickerViewDelegate {
-    // MARK: Properties
+    // MARK: Members
+    
     @IBOutlet weak var difficultyPicker: UIPickerView!
     @IBOutlet weak var goImageView: UIImageView!
     @IBOutlet weak var playerNameText: UITextField!
+    @IBOutlet weak var highScoresImageView: UIImageView!
     
     // MARK: UIPickerViewDataSource
     
@@ -26,7 +28,7 @@ class HomeScreenController: UIViewController,UIPickerViewDataSource,UIPickerView
     }
     
     func pickerView(_ pickerView: UIPickerView, attributedTitleForRow row: Int, forComponent component: Int) -> NSAttributedString? {
-        return NSAttributedString(string: GameManager.Difficulty.allValues[row].rawValue, attributes: [NSAttributedStringKey.foregroundColor:UIColor.purple])
+        return NSAttributedString(string: GameManager.Difficulty.allValues[row].string, attributes: [NSAttributedStringKey.foregroundColor:UIColor.purple])
     }
     
     @objc func goTapped(tapGestureRecognizer: UITapGestureRecognizer){
@@ -45,6 +47,21 @@ class HomeScreenController: UIViewController,UIPickerViewDataSource,UIPickerView
         }
     }
     
+    @objc func highScoresTapped(tapGestureRecognizer: UITapGestureRecognizer){
+        // Getting the chosen difficulty
+        let selectedDifficultyIndex = difficultyPicker.selectedRow(inComponent: 0)
+        let difficultyChosen = GameManager.Difficulty.allValues[selectedDifficultyIndex]
+        
+        // Moving to the scores view:
+        let scoresController = self.storyboard?.instantiateViewController(withIdentifier: "ScoresController") as! ScoresController
+        
+        scoresController.setScoresParams(difficulty: difficultyChosen, userScore: nil)
+        
+        // Presenting and not pushing cause we do not want to go back here
+        //self.present(winController, animated: true, completion: nil)
+        self.navigationController!.pushViewController(scoresController, animated: true)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         difficultyPicker.dataSource = self
@@ -54,6 +71,11 @@ class HomeScreenController: UIViewController,UIPickerViewDataSource,UIPickerView
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(goTapped(tapGestureRecognizer:)))
         goImageView.addGestureRecognizer(tapGestureRecognizer)
         goImageView.isUserInteractionEnabled = true
+        
+        // Setting click event for the go image:
+        let scoresTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(highScoresTapped(tapGestureRecognizer:)))
+        highScoresImageView.addGestureRecognizer(scoresTapGestureRecognizer)
+        highScoresImageView.isUserInteractionEnabled = true
         
         // Settign background:
         self.view.backgroundColor = UIColor(patternImage: #imageLiteral(resourceName: "background"))
