@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreData
 
 class GameManager{
     
@@ -51,7 +52,7 @@ class GameManager{
         case AlreadyRevealedCell
     }
     
-    // MARK: - Properties
+    // MARK: - Members
     
     // The number of seconds to wait until hiding two cards that do not match or hide two that does match
     private static let CARDS_REVEALED_SECONDS: Double = 1
@@ -69,6 +70,7 @@ class GameManager{
     private var name: String = ""
     private var timeTimer: Timer? = nil
     private var scoresManager: ScoresManager? = nil
+    private var cardsImagesManager: CardsImagesManager? = nil
     public weak var delegate: GameManagerDelegate?
     
     // MARK: - Properties
@@ -98,6 +100,16 @@ class GameManager{
     
     // MARK: - Methods
     
+    public func initDBManagers(context : NSManagedObjectContext){
+        if cardsImagesManager == nil {
+            cardsImagesManager = CardsImagesManager(context: context)
+        }
+        
+        if scoresManager == nil {
+            scoresManager = ScoresManager()
+        }
+    }
+    
     private func getDimention(difficulty: Difficulty) -> (rows: Int, cols: Int) {
         switch difficulty{
         case Difficulty.Beginners:
@@ -107,6 +119,12 @@ class GameManager{
         case Difficulty.Expert:
             return (rows:4,cols:5)
         }
+    }
+    
+    public func getMaxTypes() -> Int {
+        // Getting the max dimention matrix and deviding it to half for types count
+        let dim: (rows: Int, cols: Int) = getDimention(difficulty: Difficulty.Expert)
+        return (dim.cols * dim.rows) / 2
     }
     
     /**
@@ -129,7 +147,7 @@ class GameManager{
         let numOfTypes = (difficultyDimention.cols * difficultyDimention.rows) / 2
         var typesArray = [Int]()
         
-        for type in 1...numOfTypes{
+        for type in 0...numOfTypes - 1{
             typesArray.append(type)
             typesArray.append(type)
         }
@@ -202,9 +220,8 @@ class GameManager{
      - returns: An enum TurnResult indicating if the cell was revealed anf if not, why.
      */
     func revealCell(cellRow: Int, cellColumn: Int) -> TurnResult {
-        // TODO: Back from comment
         // Assuming all ok
-        /*var result: TurnResult = .Revealed
+        var result: TurnResult = .Revealed
         
         let cell = getCell(cellRow: cellRow, cellColumn: cellColumn)
         if cell != nil{
@@ -214,10 +231,10 @@ class GameManager{
             else
             {
                 if self.revealedCells.count == 1 {
-                cell!.setRevealed(isRevealed: true)
-                revealedCells.append(cell!)
-                // Staring a timer to hide matched cards or unreveal not matched cards
-                Timer.scheduledTimer(timeInterval: GameManager.CARDS_REVEALED_SECONDS,
+                    cell!.setRevealed(isRevealed: true)
+                    revealedCells.append(cell!)
+                    // Staring a timer to hide matched cards or unreveal not matched cards
+                    Timer.scheduledTimer(timeInterval: GameManager.CARDS_REVEALED_SECONDS,
                                                  target: self,
                                                  selector: #selector(revealTimerElapsed),
                                                  userInfo: nil,
@@ -237,11 +254,7 @@ class GameManager{
             result = .InvalidCell
         }
         
-        return result*/
-        
-        delegate?.gameWon()
-        
-        return .Revealed
+        return result
     }
     
     /**
@@ -283,26 +296,24 @@ class GameManager{
      This method adds the current ended game's result to the high scores DB if there is space or it is a new high.
      - returns: nil if the score was not added (not a new high score), The score if added
      */
-    func addLastScoreToHighScores() -> HighScore? {
-        var highScore: HighScore? = nil
-        
-        // Initializing the handler if not initiated
-        if scoresManager == nil {
-            scoresManager = ScoresManager()
-        }
-        
-        highScore = (scoresManager?.addScore(difficulty: difficulty!, name: name, time:time))
-        
-        return highScore
+    func addLastScoreToHighScores(scoresDelegate: ScoresDelegate) {
+        scoresManager?.addScore(difficulty: difficulty!, name: name, time:time, scoresDelegate: scoresDelegate)
     }
     
-    func getHighScores(difficulty: Difficulty) -> [HighScore]? {
-        // Initializing the handler if not initiated
-        if scoresManager == nil {
-            scoresManager = ScoresManager()
-        }
-        
-        return scoresManager?.pullAllScores(difficulty: difficulty.rawValue)
+    func getHighScores(difficulty: Difficulty, scoresDelegate: ScoresDelegate) {
+        return (scoresManager?.pullAllScores(difficulty: difficulty.rawValue, scoresDelegate: scoresDelegate))!
+    }
+    
+    /**
+     This method returns the card image in the given index from the DB (already pulled in initDB method).
+     - returns: The card in the given index
+     */
+    func getCardImage(type: Int) -> CardImage? {
+        return self.cardsImagesManager?.getCardImage(type: type)
+    }
+    
+    func setCardImage(type: Int, imageType: CardImage.ImageType, cardsImagesDelegate: CardsImagesDelegate){
+        self.cardsImagesManager?.updateCard(type: type, imageType: imageType, cardsImagesDelegate: cardsImagesDelegate)
     }
     
     func stopTimeTimer() -> Void {

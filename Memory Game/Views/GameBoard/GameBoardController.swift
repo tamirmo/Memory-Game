@@ -8,7 +8,6 @@
 
 import UIKit
 
-
 class GameBoardController: UIViewController , UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, GameManagerDelegate{
     
     // MARK: Members
@@ -18,6 +17,30 @@ class GameBoardController: UIViewController , UICollectionViewDataSource, UIColl
     private static var CELLS_MARGIN:CGFloat = 5
     
     // MARK: Methods
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // Setting background:
+        self.view.backgroundColor = UIColor(patternImage: #imageLiteral(resourceName: "background"))
+        
+        // Registering to the manager's delegate
+        GameManager.getInstance().delegate = self
+        
+        // Setting the navigation controller transparent
+        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        self.navigationController?.navigationBar.shadowImage = UIImage()
+        self.navigationController?.navigationBar.isTranslucent = true
+        self.navigationController?.view.backgroundColor = .clear
+        
+        // Setting the current time and player name
+        durationUpdated(time: GameManager.getInstance().gameDuration)
+        nameLabel.text = GameManager.getInstance().playerName
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        GameManager.getInstance().stopTimeTimer()
+    }
     
     // MARK: UICollectionViewDelegateFlowLayout
     
@@ -102,29 +125,5 @@ class GameBoardController: UIViewController , UICollectionViewDataSource, UIColl
         DispatchQueue.main.async { [weak self] in
             self?.timeLabel.text = time.description
         }
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Settign background:
-        self.view.backgroundColor = UIColor(patternImage: #imageLiteral(resourceName: "background"))
-        
-        // Registering to the manager's delegate
-        GameManager.getInstance().delegate = self
-        
-        // Setting the navigation controller transparent
-        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        self.navigationController?.navigationBar.shadowImage = UIImage()
-        self.navigationController?.navigationBar.isTranslucent = true
-        self.navigationController?.view.backgroundColor = .clear
-        
-        // Setting the current time and player name
-        durationUpdated(time: GameManager.getInstance().gameDuration)
-        nameLabel.text = GameManager.getInstance().playerName
-    }
-    
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        GameManager.getInstance().stopTimeTimer()
     }
 }

@@ -18,12 +18,15 @@ class ScoresManager{
     
     // MARK: - Members
     
-    var context : NSManagedObjectContext?
-    var scores : [HighScore]? = nil
+    private weak var context : NSManagedObjectContext?
+    private var scores : [HighScore]? = nil
+    private var scoresQueue : DispatchQueue
     
     // MARK: - Ctor
     
     init() {
+        self.scoresQueue = DispatchQueue(label: "scoresManager", attributes: DispatchQueue.Attributes.concurrent)
+        
         // Using the delegate of the app is prohibited outside the ui thread:
         DispatchQueue.main.async {[weak self] in
             self?.context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -40,42 +43,47 @@ class ScoresManager{
      - Parameter time: The time of the score to add.
      - returns: The score record thar was created if added, nil if not added.
      */
-    func addScore(difficulty: GameManager.Difficulty, name:String, time: GameDuration) -> HighScore?{
-        var highScore: HighScore? = nil
-        
-        // Calculating the absolute time of the given score
-        let scoreAbsoluteSeconds = HighScore.durationToAbsoluteSeconds(duration: time)
-        
-        // Getting the number of scores in the difficulty
-        let scoresCount = getScoresCount(difficulty: difficulty.rawValue)
-        
-        let lowestScore = pullLowestScore(difficulty: difficulty)
-        
-        // There is more space for the new score
-        // or the score is better than the slowest exist in the difficulty
-        if scoresCount! < ScoresManager.MAX_SCORES_FOR_DIFFICULTY ||
-            (lowestScore != nil &&
-                lowestScore!.secondsPlayed.intValue > scoreAbsoluteSeconds){
-            
-            // Adding the new score :
-            
-            let entity = NSEntityDescription.entity(forEntityName: HighScore.TABLE_NAME, in: context!)
-            highScore = HighScore(entity: entity!, insertInto: context)
-            highScore!.setValue(name, forKey: "name")
-            highScore!.setValue(scoreAbsoluteSeconds, forKey: "secondsPlayed")
-            highScore!.setValue(difficulty.rawValue, forKey: "difficulty")
-            
-            // Checking if we need to delete a score
-            // (max score has reached)
-            if scoresCount! >= ScoresManager.MAX_SCORES_FOR_DIFFICULTY {
-                // Deleting the lowest score found in this difficulty
-                lowestScore?.remove()
+    func addScore(difficulty: GameManager.Difficulty, name:String, time: GameDuration, scoresDelegate: ScoresDelegate){
+        scoresQueue.async {[weak self] in
+            if self != nil {
+                var highScore: HighScore? = nil
+                
+                // Calculating the absolute time of the given score
+                let scoreAbsoluteSeconds = HighScore.durationToAbsoluteSeconds(duration: time)
+                
+                // Getting the number of scores in the difficulty
+                let scoresCount = self!.getScoresCount(difficulty: difficulty.rawValue)
+                
+                let lowestScore = self!.pullLowestScore(difficulty: difficulty)
+                
+                // There is more space for the new score
+                // or the score is better than the slowest exist in the difficulty
+                if scoresCount! < ScoresManager.MAX_SCORES_FOR_DIFFICULTY ||
+                    (lowestScore != nil &&
+                        lowestScore!.secondsPlayed.intValue > scoreAbsoluteSeconds){
+                    
+                    // Adding the new score :
+                    
+                    let entity = NSEntityDescription.entity(forEntityName: HighScore.TABLE_NAME, in: self!.context!)
+                    highScore = HighScore(entity: entity!, insertInto: self!.context)
+                    highScore!.setValue(name, forKey: "name")
+                    highScore!.setValue(scoreAbsoluteSeconds, forKey: "secondsPlayed")
+                    highScore!.setValue(difficulty.rawValue, forKey: "difficulty")
+                    
+                    // Checking if we need to delete a score
+                    // (max score has reached)
+                    if scoresCount! >= ScoresManager.MAX_SCORES_FOR_DIFFICULTY {
+                        // Deleting the lowest score found in this difficulty
+                        lowestScore?.remove()
+                    }
+                    
+                    highScore?.save()
+                    
+                    // Notifying the listener
+                    scoresDelegate.scoreAdded(score: highScore)
+                }
             }
-            
-            highScore?.save()
         }
-        
-        return highScore
     }
     
     /**
@@ -108,19 +116,23 @@ class ScoresManager{
      - Parameter difficulty: The difficulty to get it's scores.
      - returns: The scores in the given difficulty.
      */
-    func pullAllScores(difficulty: Int) -> [HighScore]?{
-        let request = getScoresDifficultyFetchReq(difficulty: difficulty)
-        // The longest time the score is, the lowest it's rank
-        request.sortDescriptors = [NSSortDescriptor.init(key: "secondsPlayed", ascending: true)]
-        
-        do {
-            let result = try context?.fetch(request)
-            scores = result as? [HighScore]
-        } catch {
-            print("@@@@@@@@@@@@ Failed")
+    func pullAllScores(difficulty: Int, scoresDelegate: ScoresDelegate){
+        scoresQueue.async {[weak self] in
+            if self != nil{
+                let request = self!.getScoresDifficultyFetchReq(difficulty: difficulty)
+                // The longest time the score is, the lowest it's rank
+                request.sortDescriptors = [NSSortDescriptor.init(key: "secondsPlayed", ascending: true)]
+                
+                do {
+                    let result = try self!.context?.fetch(request)
+                    self!.scores = result as? [HighScore]
+                } catch {
+                    print("@@@@@@@@@@@@ Failed")
+                }
+                
+                scoresDelegate.scoresPulled(scores: self!.scores)
+            }
         }
-        
-        return scores
     }
     
     /**

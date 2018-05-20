@@ -9,7 +9,7 @@
 import Foundation
 
 class BoardCell{
-    // MARK: Properties
+    // MARK: - Members
     
     private var isRevealed: Bool
     private var type: Int

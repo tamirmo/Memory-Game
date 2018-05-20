@@ -45,7 +45,6 @@ class GameDuration{
         }
     }
     
-    // We have this method thanks to the NSObject inheritance
     var description: String {
         return String(format: "%02d:%02d:%02d", Hours, Minutes, Seconds)
     }

@@ -41,5 +41,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Choosing cards images</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choosing cards images</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Taking pictures for cards</string>
 </dict>
 </plist>

@@ -11,9 +11,6 @@ import UIKit
 class CardViewCell: UICollectionViewCell{
     // MARK: Members
     
-    // The prefix of all cards images (adding a number will lead to an existing image
-    private static let CARD_IMAGES_PREFIX: String = "card_"
-    
     @IBOutlet weak var cardImage: UIImageView!
     private var indexPath: IndexPath?
     
@@ -26,6 +23,7 @@ class CardViewCell: UICollectionViewCell{
     func updateImage() -> Void {
         // Getting the cell to update
         let cell = GameManager.getInstance().getCell(cellRow: indexPath!.section, cellColumn: indexPath!.row)
+        let cellImage = GameManager.getInstance().getCardImage(type: cell!.getType())
         
         // Checking if the player has not yet coupled it
         if !(cell!.getCoupled()) {
@@ -33,16 +31,14 @@ class CardViewCell: UICollectionViewCell{
             isHidden = false
             // Checking if we need to display the revealed image or the actual card
             if cell!.getRevealed() {
-                // (The images names are 1 based)
-                cardImage.image = UIImage(named:CardViewCell.CARD_IMAGES_PREFIX + String(describing: cell!.getType()))
-                // Animating the card's change
-                UIView.transition(with: cardImage, duration: 0.3, options: .transitionFlipFromLeft, animations: nil, completion: nil)
+                cardImage.image = CardImageCreator.CreateImage(cardImage: cellImage!, type: cell!.getType())
             }
             else{
                 cardImage.image = #imageLiteral(resourceName: "unrevealed_card")
-                // Animating the card's change
-                UIView.transition(with: cardImage, duration: 0.3, options: .transitionFlipFromRight, animations: nil, completion: nil)
             }
+            
+            // Animating the card's change
+            UIView.transition(with: cardImage, duration: 0.3, options: .transitionFlipFromRight, animations: nil, completion: nil)
         }
         // The card is not relevant, hiding it
         else{

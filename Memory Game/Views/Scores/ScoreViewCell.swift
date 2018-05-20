@@ -11,7 +11,7 @@ import Foundation
 import UIKit
 
 class ScoreViewCell: UITableViewCell{
-    // MARK: Members
+    // MARK: - Members
     @IBOutlet weak var rankLabel: UILabel!
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var timeLabel: UILabel!
@@ -19,7 +19,7 @@ class ScoreViewCell: UITableViewCell{
     private var index: Int?
     private var score: HighScore?
     
-    // MARK: Methods
+    // MARK: - Methods
     
     func setIndex(index: Int) -> Void {
         self.index = index
